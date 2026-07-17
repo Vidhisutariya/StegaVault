@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StegaVault — Steganography Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body>
+
+<!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <span class="brand-icon">⬡</span>
+    <span style="font-family:var(--display)">StegaVault</span>
+  </div>
+
+  <nav style="flex:1;padding:16px 0;display:flex;flex-direction:column;overflow-y:auto">
+    <span class="nav-label">Steganography</span>
+    <a class="nav-item active" data-panel="p-text-enc" href="#">
+      <span class="nav-icon">✦</span> Hide Text
+    </a>
+    <a class="nav-item" data-panel="p-text-dec" href="#">
+      <span class="nav-icon">◈</span> Extract Text
+    </a>
+    <a class="nav-item" data-panel="p-img-enc" href="#">
+      <span class="nav-icon">⬡</span> Hide Image
+    </a>
+    <a class="nav-item" data-panel="p-img-dec" href="#">
+      <span class="nav-icon">◉</span> Extract Image
+    </a>
+
+    <span class="nav-label">Watermarking</span>
+    <a class="nav-item" data-panel="p-dct-enc" href="#">
+      <span class="nav-icon">≋</span> Invisible (DCT)
+    </a>
+    <a class="nav-item" data-panel="p-dct-dec" href="#">
+      <span class="nav-icon">∿</span> Extract DCT
+    </a>
+    <a class="nav-item" data-panel="p-vis-text" href="#">
+      <span class="nav-icon">◐</span> Visible Text
+    </a>
+    <a class="nav-item" data-panel="p-vis-img" href="#">
+      <span class="nav-icon">⊕</span> Logo Overlay
+    </a>
+
+    <span class="nav-label">Tamper Detection</span>
+    <a class="nav-item" data-panel="p-hash" href="#">
+      <span class="nav-icon">⬘</span> Get Hash
+    </a>
+    <a class="nav-item" data-panel="p-verify" href="#">
+      <span class="nav-icon">⬙</span> Verify Hash
+    </a>
+    <a class="nav-item" data-panel="p-diff" href="#">
+      <span class="nav-icon">⬚</span> Diff Heatmap
+    </a>
+    <a class="nav-item" data-panel="p-lsb" href="#">
+      <span class="nav-icon">⋮</span> LSB Noise
+    </a>
+
+    <span class="nav-label">Reference</span>
+    <a class="nav-item" data-panel="p-history" href="#">
+      <span class="nav-icon">▤</span> History
+    </a>
+    <a class="nav-item" data-panel="p-algo" href="#">
+      <span class="nav-icon">∑</span> Algorithms
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button class="theme-btn" id="themeBtn" title="Toggle theme">☽</button>
+    <a href="/docs" target="_blank" class="docs-link">API Docs ↗</a>
+  </div>
+</aside>
+
+<!-- ═══════════════════ MAIN ═══════════════════ -->
+<main class="main">
+
+  <header class="topbar">
+    <button class="sb-toggle" id="sbToggle">☰</button>
+    <div class="topbar-title" id="topTitle">Hide Text in Image</div>
+    <div class="badges">
+     <!--  <span class="badge badge-g" id="statusBadge">● Online</span>
+      <span class="badge badge-d">LSB · DCT · AES-256</span> -->
+    </div>
+  </header>
+
+  <div class="toast-wrap" id="toasts"></div>
+
+  <div class="panels" id="panels">
+
+    <!-- ══ TEXT ENCODE ══ -->
+    <section class="panel active" id="p-text-enc">
+      <div class="ph">
+        <h2>Hide Text in Image <span class="tag">LSB</span></h2>
+        <p class="ph-desc">Embed secret text using LSB steganography. Add a password for AES-256-GCM encryption before embedding.</p>
+      </div>
+      <div class="steps">
+        <div class="step active" id="te-s1">① Upload</div>
+        <div class="step" id="te-s2">② Configure</div>
+        <div class="step" id="te-s3">③ Download</div>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <label class="clabel">Cover Image</label>
+          <div class="dz" id="dz-te-cover" data-input="fi-te-cover">
+            <div class="dz-icon">⬡</div>
+            <p>Drop image here or <span class="link">browse</span></p>
+            <small>PNG / JPEG — max 20 MB</small>
+          </div>
+          <input type="file" id="fi-te-cover" accept="image/*" hidden/>
+          <div class="prev-wrap" id="pw-te-cover" style="display:none">
+            <img class="prev-img" id="pi-te-cover" alt="Cover"/>
+            <span class="prev-lbl">Cover</span>
+          </div>
+        </div>
+        <div class="card">
+          <label class="clabel">Secret Message</label>
+          <textarea class="textarea" id="te-msg" placeholder="Type your secret message here…" rows="5" maxlength="10000"></textarea>
+          <div class="cc"><span id="te-cc">0</span> / 10000</div>
+
+          <div class="cap-wrap" id="te-cap" style="display:none">
+            <div class="cap-lbl">Capacity used: <span id="te-pct">0%</span></div>
+            <div class="cap-bar"><div class="cap-fill" id="te-fill"></div></div>
+          </div>
+
+          <label class="clabel mt">Password <span class="opt">(optional — AES-256)</span></label>
+          <div class="ig">
+            <input type="password" class="input" id="te-pwd" placeholder="Leave blank for no encryption"/>
+            <button class="icon-btn" onclick="togglePwd('te-pwd')">👁</button>
+          </div>
+
+          <button class="btn btn-p mt" id="btn-te">
+            <span class="btn-il">✦</span> Encode &amp; Hide
+          </button>
+        </div>
+      </div>
+      <div class="result" id="res-te" style="display:none">
+        <div class="rh">
+          <div class="ri-icon ok">✓</div>
+          <span>Text hidden successfully!</span>
+          <button class="btn btn-o btn-sm" id="dl-te">⬇ Download PNG</button>
+        </div>
+        <div class="rimgs">
+          <div class="riwrap">
+            <img class="rimg" id="ri-te-before" alt="Original"/>
+            <span class="rilbl">Original</span>
+          </div>
+          <div class="rarrow">→</div>
+          <div class="riwrap">
+            <img class="rimg" id="ri-te-after" alt="Stego"/>
+            <span class="rilbl">Stego Image</span>
+          </div>
+        </div>
+        <div class="meta" id="meta-te"></div>
+      </div>
+    </section>
+
+    <!-- ══ TEXT DECODE ══ -->
+    <section class="panel" id="p-text-dec">
+      <div class="ph">
+        <h2>Extract Hidden Text <span class="tag">LSB</span></h2>
+        <p class="ph-desc">Retrieve secret text from a stego image. Provide the same password used during encoding.</p>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <label class="clabel">Stego Image</label>
+          <div class="dz" id="dz-td" data-input="fi-td">
+            <div class="dz-icon">◈</div>
+            <p>Drop stego image here or <span class="link">browse</span></p>
+          </div>
+          <input type="file" id="fi-td" accept="image/*" hidden/>
+          <div class="prev-wrap" id="pw-td" style="display:none">
+            <img class="prev-img" id="pi-td" alt="Stego"/>
+          </div>
+        </div>
+        <div class="card">
+          <label class="clabel">Password <span class="opt">(if encoded with one)</span></label>
+          <div class="ig">
+            <input type="password" class="input" id="td-pwd" placeholder="Leave blank if not encrypted"/>
+            <button class="icon-btn" onclick="togglePwd('td-pwd')">👁</button>
+          </div>
+          <button class="btn btn-p mt" id="btn-td">
+            <span class="btn-il">◈</span> Extract Text
+          </button>
+        </div>
+      </div>
+      <div class="result" id="res-td" style="display:none">
+        <div class="rh">
+          <div class="ri-icon ok">✓</div>
+          <span>Text extracted successfully!</span>
+          <button class="btn btn-o btn-sm" id="copy-td">⎘ Copy</button>
+        </div>
+        <div class="textbox" id="td-out"></div>
+        <div class="meta" id="meta-td"></div>
+      </div>
+    </section>
+
+    <!-- ══ IMAGE ENCODE ══ -->
+    <section class="panel" id="p-img-enc">
+      <div class="ph">
+        <h2>Hide Image Inside Image <span class="tag">LSB</span></h2>
+        <p class="ph-desc">Conceal a secret image inside a cover. Secret is auto-resized to fit capacity. Optional AES-256 encryption.</p>
+      </div>
+      <div class="grid3">
+        <div class="card">
+          <label class="clabel">Cover Image</label>
+          <div class="dz" id="dz-ie-cover" data-input="fi-ie-cover">
+            <div class="dz-icon">⬡</div>
+            <p>Cover image</p>
+          </div>
+          <input type="file" id="fi-ie-cover" accept="image/*" hidden/>
+          <div class="prev-wrap" id="pw-ie-cover" style="display:none">
+            <img class="prev-img" id="pi-ie-cover" alt="Cover"/>
+            <span class="prev-lbl">Cover</span>
+          </div>
+        </div>
+        <div class="card">
+          <label class="clabel">Secret Image</label>
+          <div class="dz" id="dz-ie-secret" data-input="fi-ie-secret">
+            <div class="dz-icon">⬡</div>
+            <p>Secret image to hide</p>
+          </div>
+          <input type="file" id="fi-ie-secret" accept="image/*" hidden/>
+          <div class="prev-wrap" id="pw-ie-secret" style="display:none">
+            <img class="prev-img" id="pi-ie-secret" alt="Secret"/>
+            <span class="prev-lbl">Secret</span>
+          </div>
+        </div>
+        <div class="card">
+          <label class="clabel">Password <span class="opt">(optional)</span></label>
+          <div class="ig">
+            <input type="password" class="input" id="ie-pwd" placeholder="Optional AES password"/>
+            <button class="icon-btn" onclick="togglePwd('ie-pwd')">👁</button>
+          </div>
+          <div class="info mt">Cover image should be at least 4× larger (in pixels) than the secret image for best results.</div>
+          <button class="btn btn-p mt" id="btn-ie">
+            <span class="btn-il">⬡</span> Encode &amp; Hide
+          </button>
+        </div>
+      </div>
+      <div class="result" id="res-ie" style="display:none">
+        <div class="rh">
+          <div class="ri-icon ok">✓</div>
+          <span>Image hidden successfully!</span>
+          <button class="btn btn-o btn-sm" id="dl-ie">⬇ Download PNG</button>
+        </div>
+        <div class="rimgs">
+          <div class="riwrap"><img class="rimg" id="ri-ie-cover" alt="Cover"/><span class="rilbl">Cover</span></div>
+          <div class="rarrow">+</div>
+          <div class="riwrap"><img class="rimg" id="ri-ie-secret" alt="Secret"/><span class="rilbl">Secret</span></div>
+          <div class="rarrow">→</div>
+          <div class="riwrap"><img class="rimg" id="ri-ie-stego" alt="Stego"/><span class="rilbl">Stego Image</span></div>
+        </div>
+        <div class="meta" id="meta-ie"></div>
+      </div>
+    </section>
+
+    <!-- ══ IMAGE DECODE ══ -->
+    <section class="panel" id="p-img-dec">
+      <div class="ph">
+        <h2>Extract Hidden Image <span class="tag">LSB</span></h2>
+        <p class="ph-desc">Recover the secret image embedded inside a stego image.</p>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <label class="clabel">Stego Image</label>
+          <div class="dz" id="dz-id" data-input="fi-id">
+            <div class="dz-icon">◉</div>
+            <p>Drop stego image here or <span class="link">browse</span></p>
+          </div>
+          <input type="file" id="fi-id" accept="image/*" hidden/>
+          <div class="prev-wrap" id="pw-id" style="display:none">
+            <img class="prev-img" id="pi-id" alt="Stego"/>
+          </div>
+        </div>
+        <div class="card">
+          <label class="clabel">Password <span class="opt">(if used during encoding)</span></label>
+          <div class="ig">
+            <input type="password" class="input" id="id-pwd" placeholder="Leave blank if not encrypted"/>
+            <button class="icon-btn" onclick="togglePwd('id-pwd')">👁</button>
+          </div>
+          <button class="btn btn-p mt" id="btn-id">
+            <span class="btn-il">◉</span> Extract Hidden Image
+          </button>
+        </div>
+      </div>
+      <div class="result" id="res-id" style="display:none">
+        <div class="rh">
+          <div class="ri-icon ok">✓</div>
+          <span>Hidden image extracted!</span>
+          <button class="btn btn-o btn-sm" id="dl-id">⬇ Download</button>
+        </div>
+        <div class="rimgs">
+          <div class="riwrap"><img class="rimg" id="ri-id-out" alt="Extracted"/><span class="rilbl">Extracted Image</span></div>
+        </div>
+        <div class="meta" id="meta-id"></div>
+      </div>
+    </section>
+
+    <!-- ══ DCT EMBED ══ -->
+    <section class="panel" id="p-dct-enc">
+      <div class="ph">
+        <h2>Invisible DCT Watermark <span class="tag">DCT</span></h2>
+        <p class="ph-desc">Embed watermark text in mid-frequency DCT coefficients of 8×8 pixel blocks. Invisible and partially JPEG-resilient.</p>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <label class="clabel">Image to Watermark</label>
+          <div class="dz" id="dz-dct-e" data-input="fi-dct-e">
+            <div class="dz-icon">≋</div>
+            <p>Drop image here or <span class="link">browse</span></p>
+          </div>
+          <input type="file" id="fi-dct-e" accept="image/*" hidden/>
+          <div class="prev-wrap" id="pw-dct-e" style="display:none">
+            <img class="prev-img" id="pi-dct-e" alt="Preview"/>
+          </div>
+        </div>
+        <div class="card">
+          <label class="clabel">Watermark Text</label>
+          <input type="text" class="input" id="dct-e-txt" placeholder="e.g. © CHARUSAT 2025" maxlength="200"/>
+          <label class="clabel mt">Embedding Strength</label>
+          <div class="rw">
+            <input type="range" class="ri" id="dct-e-str" min="10" max="50" value="25"/>
+            <span class="rv" id="dct-e-str-v">25</span>
+          </div>
+          <div class="info mt">
+            <strong>10–15</strong> → Imperceptible, fragile<br>
+            <strong>20–30</strong> → Recommended balance<br>
+            <strong>35–50</strong> → Robust, slight quality change
+          </div>
+          <button class="btn btn-p mt" id="btn-dct-e">
+            <span class="btn-il">≋</span> Embed Watermark
+          </button>
+        </div>
+      </div>
+      <div class="result" id="res-dct-e" style="display:none">
+        <div class="rh">
+          <div class="ri-icon ok">✓</div>
+          <span>DCT watermark embedded!</span>
+          <button class="btn btn-o btn-sm" id="dl-dct-e">⬇ Download</button>
+        </div>
+        <div class="rimgs">
+          <div class="riwrap"><img class="rimg" id="ri-dct-e-bef" alt="Before"/><span class="rilbl">Original</span></div>
+          <div class="rarrow">→</div>
+          <div class="riwrap"><img class="rimg" id="ri-dct-e-aft" alt="After"/><span class="rilbl">Watermarked</span></div>
+        </div>
+        <div class="meta" id="meta-dct-e"></div>
+      </div>
+    </section>
+
+    <!-- ══ DCT EXTRACT ══ -->
+    <section class="panel" id="p-dct-dec">
+      <div class="ph">
+        <h2>Extract DCT Watermark <span class="tag">DCT</span></h2>
+        <p class="ph-desc">Blind extraction — no original image required. Reads DCT coefficient signs to recover embedded text.</p>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <label class="clabel">Watermarked Image</label>
+          <div class="dz" id="dz-dct-d" data-input="fi-dct-d">
+            <div class="dz-icon">∿</div>
+            <p>Drop watermarked image here or <span class="link">browse</span></p>
+          </div>
+          <input type="file" id="fi-dct-d" accept="image/*" hidden/>
+          <div class="prev-wrap" id="pw-dct-d" style="display:none">
+            <img class="prev-img" id="pi-dct-d" alt="Preview"/>
+          </div>
+        </div>
+        <div class="card">
+          <label class="clabel">Strength (must match embedding value)</label>
+          <div class="rw">
+            <input type="range" class="ri" id="dct-d-str" min="10" max="50" value="25"/>
+            <span class="rv" id="dct-d-str-v">25</span>
+          </div>
+          <div class="info mt">Use the same strength value you set during embedding.</div>
+          <button class="btn btn-p mt" id="btn-dct-d">
+            <span class="btn-il">∿</span> Extract Watermark
+          </button>
+        </div>
+      </div>
+      <div class="result" id="res-dct-d" style="display:none">
+        <div class="rh">
+          <div class="ri-icon ok">✓</div>
+          <span>Watermark recovered!</span>
+        </div>
+        <div class="wm-text-box" id="dct-d-out"></div>
+        <div class="meta" id="meta-dct-d"></div>
+      </div>
+    </section>
+
+    <!-- ══ VISIBLE TEXT WATERMARK ══ -->
+    <section class="panel" id="p-vis-text">
+      <div class="ph">
+        <h2>Visible Text Watermark <span class="tag">VISIBLE</span></h2>
+        <p class="ph-desc">Burn a semi-transparent text label directly onto the image with configurable opacity, position, and size.</p>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <label class="clabel">Image</label>
+          <div class="dz" id="dz-vt" data-input="fi-vt">
+            <div class="dz-icon">◐</div>
+            <p>Drop image here or <span class="link">browse</span></p>
+          </div>
+          <input type="file" id="fi-vt" accept="image/*" hidden/>
+          <div class="prev-wrap" id="pw-vt" style="display:none">
+            <img class="prev-img" id="pi-vt" alt="Preview"/>
+          </div>
+        </div>
+        <div class="card">
+          <label class="clabel">Watermark Text</label>
+          <input type="text" class="input" id="vt-txt" placeholder="© Copyright 2025" maxlength="100"/>
+
+          <label class="clabel mt">Position</label>
+          <select class="input" id="vt-pos">
+            <option value="bottom-right">Bottom Right</option>
+            <option value="bottom-left">Bottom Left</option>
+            <option value="top-right">Top Right</option>
+            <option value="top-left">Top Left</option>
+            <option value="center">Center</option>
+          </select>
+
+          <label class="clabel mt">Opacity (0–255)</label>
+          <div class="rw">
+            <input type="range" class="ri" id="vt-op" min="0" max="255" value="128"/>
+            <span class="rv" id="vt-op-v">128</span>
+          </div>
+
+          <label class="clabel mt">Font Size</label>
+          <div class="rw">
+            <input type="range" class="ri" id="vt-fs" min="12" max="120" value="36"/>
+            <span class="rv" id="vt-fs-v">36</span>
+          </div>
+
+          <button class="btn btn-p mt" id="btn-vt">
+            <span class="btn-il">◐</span> Add Watermark
+          </button>
+        </div>
+      </div>
+      <div class="result" id="res-vt" style="display:none">
+        <div class="rh">
+          <div class="ri-icon ok">✓</div>
+          <span>Visible watermark applied!</span>
+          <button class="btn btn-o btn-sm" id="dl-vt">⬇ Download</button>
+        </div>
+        <div class="rimgs">
+          <div class="riwrap"><img class="rimg" id="ri-vt-bef" alt="Before"/><span class="rilbl">Original</span></div>
+          <div class="rarrow">→</div>
+          <div class="riwrap"><img class="rimg" id="ri-vt-aft" alt="After"/><span class="rilbl">Watermarked</span></div>
+        </div>
+        <div class="meta" id="meta-vt"></div>
+      </div>
+    </section>
+
+    <!-- ══ VISIBLE IMAGE WATERMARK ══ -->
+    <section class="panel" id="p-vis-img">
+      <div class="ph">
+        <h2>Logo / Image Watermark <span class="tag">VISIBLE</span></h2>
+        <p class="ph-desc">Overlay a semi-transparent logo or image onto your photo with configurable opacity, scale, and position.</p>
+      </div>
+      <div class="grid3">
+        <div class="card">
+          <label class="clabel">Base Image</label>
+          <div class="dz" id="dz-vi-base" data-input="fi-vi-base">
+            <div class="dz-icon">⊕</div>
+            <p>Base image</p>
+          </div>
+          <input type="file" id="fi-vi-base" accept="image/*" hidden/>
+          <div class="prev-wrap" id="pw-vi-base" style="display:none">
+            <img class="prev-img" id="pi-vi-base" alt="Base"/>
+            <span class="prev-lbl">Base</span>
+          </div>
+        </div>
+        <div class="card">
+          <label class="clabel">Watermark Logo</label>
+          <div class="dz" id="dz-vi-logo" data-input="fi-vi-logo">
+            <div class="dz-icon">⊕</div>
+            <p>Logo / watermark image</p>
+          </div>
+          <input type="file" id="fi-vi-logo" accept="image/*" hidden/>
+          <div class="prev-wrap" id="pw-vi-logo" style="display:none">
+            <img class="prev-img" id="pi-vi-logo" alt="Logo"/>
+            <span class="prev-lbl">Logo</span>
+          </div>
+        </div>
+        <div class="card">
+          <label class="clabel">Position</label>
+          <select class="input" id="vi-pos">
+            <option value="bottom-right">Bottom Right</option>
+            <option value="bottom-left">Bottom Left</option>
+            <option value="top-right">Top Right</option>
+            <option value="top-left">Top Left</option>
+            <option value="center">Center</option>
+          </select>
+          <label class="clabel mt">Opacity</label>
+          <div class="rw">
+            <input type="range" class="ri" id="vi-op" min="0" max="100" value="40"/>
+            <span class="rv" id="vi-op-v">0.40</span>
+          </div>
+          <label class="clabel mt">Logo Size (% of image width)</label>
+          <div class="rw">
+            <input type="range" class="ri" id="vi-sc" min="5" max="80" value="20"/>
+            <span class="rv" id="vi-sc-v">20%</span>
+          </div>
+          <button class="btn btn-p mt" id="btn-vi">
+            <span class="btn-il">⊕</span> Apply Logo
+          </button>
+        </div>
+      </div>
+      <div class="result" id="res-vi" style="display:none">
+        <div class="rh">
+          <div class="ri-icon ok">✓</div>
+          <span>Logo watermark applied!</span>
+          <button class="btn btn-o btn-sm" id="dl-vi">⬇ Download</button>
+        </div>
+        <div class="rimgs">
+          <div class="riwrap"><img class="rimg" id="ri-vi-bef" alt="Before"/><span class="rilbl">Original</span></div>
+          <div class="rarrow">→</div>
+          <div class="riwrap"><img class="rimg" id="ri-vi-aft" alt="After"/><span class="rilbl">Watermarked</span></div>
+        </div>
+        <div class="meta" id="meta-vi"></div>
+      </div>
+    </section>
+
+    <!-- ══ GET HASH ══ -->
+    <section class="panel" id="p-hash">
+      <div class="ph">
+        <h2>Compute Image Hash <span class="tag">SHA-256</span></h2>
+        <p class="ph-desc">Generate a SHA-256 digest of your image's pixel data. Store it to detect any future tampering.</p>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <label class="clabel">Image</label>
+          <div class="dz" id="dz-hash" data-input="fi-hash">
+            <div class="dz-icon">⬘</div>
+            <p>Drop image here or <span class="link">browse</span></p>
+          </div>
+          <input type="file" id="fi-hash" accept="image/*" hidden/>
+          <div class="prev-wrap" id="pw-hash" style="display:none">
+            <img class="prev-img" id="pi-hash" alt="Preview"/>
+          </div>
+          <button class="btn btn-p mt" id="btn-hash">
+            <span class="btn-il">⬘</span> Compute SHA-256 Hash
+          </button>
+        </div>
+        <div class="card" id="hash-res-card" style="display:none">
+          <label class="clabel">SHA-256 Hash</label>
+          <div class="hash-box" id="hash-val"></div>
+          <button class="btn btn-o btn-sm mt" id="copy-hash">⎘ Copy Hash</button>
+          <div class="info mt">Save this hash. Use the <strong>Verify Hash</strong> panel later to confirm the image has not been tampered with.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ VERIFY HASH ══ -->
+    <section class="panel" id="p-verify">
+      <div class="ph">
+        <h2>Verify Image Integrity <span class="tag">SHA-256</span></h2>
+        <p class="ph-desc">Compare a stored hash against the current image. Any pixel-level change will cause a mismatch.</p>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <label class="clabel">Image to Verify</label>
+          <div class="dz" id="dz-verify" data-input="fi-verify">
+            <div class="dz-icon">⬙</div>
+            <p>Drop image here or <span class="link">browse</span></p>
+          </div>
+          <input type="file" id="fi-verify" accept="image/*" hidden/>
+          <div class="prev-wrap" id="pw-verify" style="display:none">
+            <img class="prev-img" id="pi-verify" alt="Preview"/>
+          </div>
+        </div>
+        <div class="card">
+          <label class="clabel">Expected Hash (64 hex characters)</label>
+          <textarea class="textarea" id="verify-hash-in" placeholder="Paste SHA-256 hash here…" rows="3"></textarea>
+          <button class="btn btn-p mt" id="btn-verify">
+            <span class="btn-il">⬙</span> Verify Integrity
+          </button>
+        </div>
+      </div>
+      <div class="result" id="res-verify" style="display:none">
+        <div class="rh" id="verify-rh">
+          <div class="ri-icon" id="verify-icon">?</div>
+          <span id="verify-verdict">—</span>
+        </div>
+        <div class="hash-grid" id="verify-hash-grid"></div>
+      </div>
+    </section>
+
+    <!-- ══ DIFF HEATMAP ══ -->
+    <section class="panel" id="p-diff">
+      <div class="ph">
+        <h2>Tamper Detection Heatmap <span class="tag">FORENSIC</span></h2>
+        <p class="ph-desc">Compare original vs. suspect images pixel by pixel. Tampered regions are highlighted in red with bounding boxes.</p>
+      </div>
+      <div class="grid3">
+        <div class="card">
+          <label class="clabel">Original Image</label>
+          <div class="dz" id="dz-diff-o" data-input="fi-diff-o">
+            <div class="dz-icon">⬚</div>
+            <p>Known-good original</p>
+          </div>
+          <input type="file" id="fi-diff-o" accept="image/*" hidden/>
+          <div class="prev-wrap" id="pw-diff-o" style="display:none">
+            <img class="prev-img" id="pi-diff-o" alt="Original"/>
+            <span class="prev-lbl">Original</span>
+          </div>
+        </div>
+        <div class="card">
+          <label class="clabel">Suspect Image</label>
+          <div class="dz" id="dz-diff-s" data-input="fi-diff-s">
+            <div class="dz-icon">⬚</div>
+            <p>Potentially tampered copy</p>
+          </div>
+          <input type="file" id="fi-diff-s" accept="image/*" hidden/>
+          <div class="prev-wrap" id="pw-diff-s" style="display:none">
+            <img class="prev-img" id="pi-diff-s" alt="Suspect"/>
+            <span class="prev-lbl">Suspect</span>
+          </div>
+        </div>
+        <div class="card">
+          <label class="clabel">Sensitivity Threshold (0–100)</label>
+          <div class="rw">
+            <input type="range" class="ri" id="diff-thr" min="0" max="100" value="10"/>
+            <span class="rv" id="diff-thr-v">10</span>
+          </div>
+          <div class="info mt">Lower = more sensitive. 0 flags any single-pixel change; 50 only flags large modifications.</div>
+          <button class="btn btn-p mt" id="btn-diff">
+            <span class="btn-il">⬚</span> Analyse Tampering
+          </button>
+        </div>
+      </div>
+      <div class="result" id="res-diff" style="display:none">
+        <div class="rh" id="diff-rh">
+          <div class="ri-icon" id="diff-icon">?</div>
+          <span id="diff-verdict">—</span>
+          <button class="btn btn-o btn-sm" id="dl-diff">⬇ Download Heatmap</button>
+        </div>
+        <div class="rimgs">
+          <div class="riwrap"><img class="rimg" id="ri-diff-o" alt="Original"/><span class="rilbl">Original</span></div>
+          <div class="rarrow">vs</div>
+          <div class="riwrap"><img class="rimg" id="ri-diff-s" alt="Suspect"/><span class="rilbl">Suspect</span></div>
+          <div class="rarrow">→</div>
+          <div class="riwrap"><img class="rimg" id="ri-diff-h" alt="Heatmap"/><span class="rilbl" style="color:var(--danger)">🔴 Heatmap</span></div>
+        </div>
+        <div class="meta" id="meta-diff"></div>
+      </div>
+    </section>
+
+    <!-- ══ LSB NOISE ══ -->
+    <section class="panel" id="p-lsb">
+      <div class="ph">
+        <h2>LSB Noise Analysis <span class="tag">STEGANALYSIS</span></h2>
+        <p class="ph-desc">Detect suspicious LSB patterns that may indicate hidden embedded data. Statistical heuristic — not a definitive detector.</p>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <label class="clabel">Image to Analyse</label>
+          <div class="dz" id="dz-lsb" data-input="fi-lsb">
+            <div class="dz-icon">⋮</div>
+            <p>Drop image here or <span class="link">browse</span></p>
+          </div>
+          <input type="file" id="fi-lsb" accept="image/*" hidden/>
+          <div class="prev-wrap" id="pw-lsb" style="display:none">
+            <img class="prev-img" id="pi-lsb" alt="Preview"/>
+          </div>
+          <button class="btn btn-p mt" id="btn-lsb">
+            <span class="btn-il">⋮</span> Analyse LSB Distribution
+          </button>
+        </div>
+        <div class="card" id="lsb-res-card" style="display:none">
+          <label class="clabel">LSB Distribution Analysis</label>
+          <div class="lsb-lbl">LSB 1s ratio: <strong id="lsb-ratio">—</strong></div>
+          <div class="lsb-bar"><div class="lsb-fill" id="lsb-fill"></div></div>
+          <div class="lsb-range"><span>0%</span><span>50% (natural)</span><span>100%</span></div>
+          <div class="verdict mt" id="lsb-verdict"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ HISTORY ══ -->
+    <section class="panel" id="p-history">
+      <div class="ph">
+        <h2>Operation History <span class="tag">LOG</span></h2>
+        <p class="ph-desc">Audit log of all operations in this session (newest first, max 200 entries).</p>
+        <div class="ph-actions">
+          <button class="btn btn-o btn-sm" id="btn-hist-refresh">↺ Refresh</button>
+          <button class="btn btn-danger btn-sm" id="btn-hist-clear">✕ Clear</button>
+        </div>
+      </div>
+      <div class="hist-list" id="hist-list">
+        <div class="empty">No operations yet. Start by hiding text or watermarking an image.</div>
+      </div>
+    </section>
+
+    <!-- ══ ALGORITHMS ══ -->
+    <section class="panel" id="p-algo">
+      <div class="ph">
+        <h2>Algorithm Reference <span class="tag">DOCS</span></h2>
+        <p class="ph-desc">Technical explanations of every algorithm used in StegaVault.</p>
+      </div>
+      <div class="algo-grid" id="algo-grid">
+        <div class="empty">Loading algorithms…</div>
+      </div>
+    </section>
+
+  </div><!-- /panels -->
+
+  <!-- Loading overlay -->
+  <div class="overlay" id="overlay">
+    <div class="ov-box">
+      <div class="spinner"></div>
+      <div class="ov-msg" id="ov-msg">Processing…</div>
+    </div>
+  </div>
+
+</main>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
