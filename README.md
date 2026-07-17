@@ -9,10 +9,10 @@
 ## � Team & Project Details
 
 - **Project type:** 4th semester software group project
-- **Department:** Depstar
+- **Institute:** Depstar
 - **Team members:**
-  - `Vidhisutariya` — `24DCE143`
-  - `Priyanshi Bhatt` — `25DCE166`
+  - `Vidhi Sutariya` — `24DCE143`
+  - `Priyanshi Bhatt` — `D25DCE166`
 
 ---
 
@@ -280,4 +280,4 @@ curl -X POST http://localhost:8000/api/tamper/get-hash \
 
 ---
 
-*StegaVault — Final Year Engineering Project | DEPSTAR, CHARUSAT University*
+*StegaVault — second Year Engineering Project | DEPSTAR, CHARUSAT University*
