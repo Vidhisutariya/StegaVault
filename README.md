@@ -4,19 +4,21 @@
 > **Pure Python stdlib server** (no FastAPI required) + HTML/CSS/JS frontend.
 > AES-256-GCM encryption · DCT watermarking · SHA-256 tamper detection.
 
+> Live Demo: https://stegavault-euuz.onrender.com
+
 ---
 
-## � Team & Project Details
+## 👥 Team & Project Details
 
 - **Project type:** 4th semester software group project
 - **Institute:** Depstar
 - **Team members:**
   - `Vidhi Sutariya` — `24DCE143`
-  - `Priyanshi Bhatt` — `D25DCE166`
+  - `Priyanshi Bhatt` — `25DCE166`
 
 ---
 
-## �📁 Project Structure
+## 📁 Project Structure
 
 ```
 stegavault/
