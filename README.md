@@ -12,7 +12,7 @@
 - **Institute:** Depstar
 - **Team members:**
   - `Vidhisutariya` — `24DCE143`
-  - `Priyanshi Bhatt` — `25DCE166`
+  - `Priyanshi Bhatt` — `D25DCE166`
 
 ---
 
