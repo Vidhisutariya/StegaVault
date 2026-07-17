@@ -635,5 +635,6 @@ def run(host: str = "0.0.0.0", port: int = 8000):
 
 
 if __name__ == "__main__":
-    port = int(sys.argv[1]) if len(sys.argv) > 1 else 8000
-    run(port=port)
+    port = int(os.environ.get("PORT", sys.argv[1] if len(sys.argv) > 1 else 8000))
+    host = os.environ.get("HOST", "0.0.0.0")
+    run(host=host, port=port)
