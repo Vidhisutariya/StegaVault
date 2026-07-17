@@ -11,7 +11,7 @@
 - **Project type:** 4th semester software group project
 - **Institute:** Depstar
 - **Team members:**
-  - `Vidhisutariya` — `24DCE143`
+  - `Vidhi Sutariya` — `24DCE143`
   - `Priyanshi Bhatt` — `D25DCE166`
 
 ---
